@@ -11,9 +11,9 @@ class AppScaffold extends StatelessWidget {
   int _currentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith('/home')) return 0;
-    if (location.startsWith('/interview')) return 1;
-    if (location.startsWith('/history')) return 2;
-    if (location.startsWith('/profile')) return 3;
+    if (location.startsWith('/profile')) return 1;
+    if (location.startsWith('/history') ||
+        location.startsWith('/interview')) return 2;
     return 0;
   }
 
@@ -23,41 +23,41 @@ class AppScaffold extends StatelessWidget {
 
     if (isCompact(context)) {
       return Scaffold(
-        body: child,
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: index,
-          onDestinationSelected: (i) => _onTap(context, i),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: S.navHome,
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.record_voice_over_outlined),
-              selectedIcon: Icon(Icons.record_voice_over),
-              label: S.navInterview,
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.history_outlined),
-              selectedIcon: Icon(Icons.history),
-              label: S.navHistory,
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: S.navProfile,
-            ),
-          ],
+        appBar: AppBar(
+          title: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset('images/logo.png', width: 28, height: 28),
+              const SizedBox(width: 8),
+              Text(
+                S.appName,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+              ),
+            ],
+          ),
         ),
+        drawer: _SidebarContent(
+          currentIndex: index,
+          onTap: (i) {
+            Navigator.pop(context); // close drawer
+            _onTap(context, i);
+          },
+        ),
+        body: child,
       );
     }
 
-    // Medium + Expanded: top navbar
+    // Desktop: fixed sidebar
     return Scaffold(
-      body: Column(
+      body: Row(
         children: [
-          _WebNavBar(currentIndex: index, onTap: (i) => _onTap(context, i)),
+          _SidebarContent(
+            currentIndex: index,
+            onTap: (i) => _onTap(context, i),
+          ),
           Expanded(child: child),
         ],
       ),
@@ -69,39 +69,18 @@ class AppScaffold extends StatelessWidget {
       case 0:
         context.go('/home');
       case 1:
-        context.go('/interview/setup');
+        context.go('/profile');
       case 2:
         context.go('/history');
-      case 3:
-        context.go('/profile');
     }
   }
 }
 
-class _WebNavBar extends StatelessWidget {
+class _SidebarContent extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  const _WebNavBar({required this.currentIndex, required this.onTap});
-
-  static const _items = [
-    (icon: Icons.home_outlined, selectedIcon: Icons.home, label: S.navHome),
-    (
-      icon: Icons.record_voice_over_outlined,
-      selectedIcon: Icons.record_voice_over,
-      label: S.navInterview,
-    ),
-    (
-      icon: Icons.history_outlined,
-      selectedIcon: Icons.history,
-      label: S.navHistory,
-    ),
-    (
-      icon: Icons.person_outline,
-      selectedIcon: Icons.person,
-      label: S.navProfile,
-    ),
-  ];
+  const _SidebarContent({required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -109,28 +88,24 @@ class _WebNavBar extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      height: 64,
+      width: 260,
       decoration: BoxDecoration(
         color: colors.surface,
-        border: Border(bottom: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.5))),
+        border: Border(
+          right: BorderSide(
+            color: colors.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Row(
-        children: [
-          // Logo
-          InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () => onTap(0),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Logo
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.asset(
-                    'images/logo.png',
-                    width: 32,
-                    height: 32,
-                  ),
+                  Image.asset('images/logo.png', width: 36, height: 36),
                   const SizedBox(width: 10),
                   Text(
                     S.appName,
@@ -142,69 +117,76 @@ class _WebNavBar extends StatelessWidget {
                 ],
               ),
             ),
-          ),
-          const SizedBox(width: 32),
+            const SizedBox(height: 8),
+            Divider(color: colors.outlineVariant.withValues(alpha: 0.5), height: 1),
+            const SizedBox(height: 8),
 
-          // Nav items
-          ...List.generate(_items.length, (i) {
-            final item = _items[i];
-            final selected = currentIndex == i;
-            return Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: _NavItem(
-                icon: selected ? item.selectedIcon : item.icon,
-                label: item.label,
-                selected: selected,
-                onTap: () => onTap(i),
-              ),
-            );
-          }),
-
-          const Spacer(),
-
-          // User avatar
-          PopupMenuButton<String>(
-            offset: const Offset(0, 48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+            // Nav items
+            _NavItem(
+              icon: Icons.dashboard_outlined,
+              selectedIcon: Icons.dashboard,
+              label: '儀表板',
+              selected: currentIndex == 0,
+              onTap: () => onTap(0),
             ),
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'profile',
-                child: Row(
-                  children: [
-                    Icon(Icons.person_outline, size: 20),
-                    SizedBox(width: 8),
-                    Text(S.profile),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, size: 20),
-                    SizedBox(width: 8),
-                    Text('登出'),
-                  ],
-                ),
-              ),
-            ],
-            onSelected: (v) {
-              if (v == 'profile') onTap(3);
-            },
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: colors.primaryContainer,
-              child: Text(
-                '王',
-                style: textTheme.labelLarge?.copyWith(
-                  color: colors.onPrimaryContainer,
-                ),
+            _NavItem(
+              icon: Icons.person_outline,
+              selectedIcon: Icons.person,
+              label: '個人經歷',
+              selected: currentIndex == 1,
+              onTap: () => onTap(1),
+            ),
+            _NavItem(
+              icon: Icons.history_outlined,
+              selectedIcon: Icons.history,
+              label: '面試紀錄',
+              selected: currentIndex == 2,
+              onTap: () => onTap(2),
+            ),
+
+            const Spacer(),
+
+            // User section
+            Divider(color: colors.outlineVariant.withValues(alpha: 0.5), height: 1),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: colors.primaryContainer,
+                    child: Text(
+                      '王',
+                      style: textTheme.labelLarge
+                          ?.copyWith(color: colors.onPrimaryContainer),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('王小明',
+                            style: textTheme.bodyMedium
+                                ?.copyWith(fontWeight: FontWeight.w600)),
+                        Text('xiaoming@example.com',
+                            style: textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant),
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.logout,
+                        size: 20, color: colors.onSurfaceVariant),
+                    onPressed: () {},
+                    tooltip: '登出',
+                  ),
+                ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -212,12 +194,14 @@ class _WebNavBar extends StatelessWidget {
 
 class _NavItem extends StatelessWidget {
   final IconData icon;
+  final IconData selectedIcon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
+    required this.selectedIcon,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -228,32 +212,36 @@ class _NavItem extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: selected ? colors.primaryContainer.withValues(alpha: 0.5) : null,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: selected ? colors.primary : colors.onSurfaceVariant,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Material(
+        color: selected
+            ? colors.primaryContainer.withValues(alpha: 0.5)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Icon(
+                  selected ? selectedIcon : icon,
+                  size: 22,
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  label,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: selected ? colors.primary : colors.onSurface,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: textTheme.labelLarge?.copyWith(
-                color: selected ? colors.primary : colors.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
