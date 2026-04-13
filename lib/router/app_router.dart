@@ -3,19 +3,56 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../screens/login/login_screen.dart';
-import '../screens/register/register_screen.dart';
-import '../screens/onboarding/onboarding_screen.dart';
-import '../screens/home/home_screen.dart';
-import '../screens/profile/profile_screen.dart';
-import '../screens/interview/setup_screen.dart';
-import '../screens/interview/session_screen.dart';
-import '../screens/interview/result_screen.dart';
-import '../screens/history/history_list_screen.dart';
-import '../screens/history/history_detail_screen.dart';
 import '../widgets/app_scaffold.dart';
+
+// Deferred imports — loaded on demand to reduce initial bundle size
+import '../screens/register/register_screen.dart' deferred as register;
+import '../screens/onboarding/onboarding_screen.dart' deferred as onboarding;
+import '../screens/home/home_screen.dart' deferred as home;
+import '../screens/profile/profile_screen.dart' deferred as profile;
+import '../screens/interview/setup_screen.dart' deferred as setup;
+import '../screens/interview/session_screen.dart' deferred as session;
+import '../screens/interview/result_screen.dart' deferred as result;
+import '../screens/history/history_list_screen.dart' deferred as historyList;
+import '../screens/history/history_detail_screen.dart' deferred as historyDetail;
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
+
+/// Stable deferred-loading wrapper that caches the Future.
+class _DeferredLoader extends StatefulWidget {
+  final Future<void> Function() loader;
+  final Widget Function() builder;
+
+  const _DeferredLoader({required this.loader, required this.builder});
+
+  @override
+  State<_DeferredLoader> createState() => _DeferredLoaderState();
+}
+
+class _DeferredLoaderState extends State<_DeferredLoader> {
+  late final Future<void> _future = widget.loader();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            return Scaffold(
+              body: Center(child: Text('載入失敗: ${snapshot.error}')),
+            );
+          }
+          return widget.builder();
+        }
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        );
+      },
+    );
+  }
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authProvider);
@@ -40,17 +77,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      // Login is eagerly loaded (first screen users see)
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) => _DeferredLoader(
+          loader: register.loadLibrary,
+          builder: () => register.RegisterScreen(),
+        ),
       ),
       GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        builder: (context, state) => _DeferredLoader(
+          loader: onboarding.loadLibrary,
+          builder: () => onboarding.OnboardingScreen(),
+        ),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -58,26 +102,38 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/home',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: HomeScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: _DeferredLoader(
+                loader: home.loadLibrary,
+                builder: () => home.HomeScreen(),
+              ),
             ),
           ),
           GoRoute(
             path: '/interview/setup',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: SetupScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: _DeferredLoader(
+                loader: setup.loadLibrary,
+                builder: () => setup.SetupScreen(),
+              ),
             ),
           ),
           GoRoute(
             path: '/history',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: HistoryListScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: _DeferredLoader(
+                loader: historyList.loadLibrary,
+                builder: () => historyList.HistoryListScreen(),
+              ),
             ),
           ),
           GoRoute(
             path: '/profile',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: ProfileScreen(),
+            pageBuilder: (context, state) => NoTransitionPage(
+              child: _DeferredLoader(
+                loader: profile.loadLibrary,
+                builder: () => profile.ProfileScreen(),
+              ),
             ),
           ),
         ],
@@ -85,19 +141,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/interview/session',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const SessionScreen(),
+        builder: (context, state) => _DeferredLoader(
+          loader: session.loadLibrary,
+          builder: () => session.SessionScreen(),
+        ),
       ),
       GoRoute(
         path: '/interview/result',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const ResultScreen(),
+        builder: (context, state) => _DeferredLoader(
+          loader: result.loadLibrary,
+          builder: () => result.ResultScreen(),
+        ),
       ),
       GoRoute(
         path: '/history/:id',
         parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => HistoryDetailScreen(
-          resultId: state.pathParameters['id']!,
-        ),
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return _DeferredLoader(
+            loader: historyDetail.loadLibrary,
+            builder: () => historyDetail.HistoryDetailScreen(resultId: id),
+          );
+        },
       ),
     ],
   );

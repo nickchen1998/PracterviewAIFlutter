@@ -16,6 +16,9 @@ AI 模擬面試練習平台 - Flutter Web + App
 - Service ID: 69dca7beca2b525706491c10 (Git deploy, auto-redeploy on push to main)
 - Environment ID: 69dc9f28474db8a99d6df6a8
 
+## Rules
+- **推送前必須詢問使用者確認**，不要自動 git push。commit 可以先做，但 push 要等使用者同意。
+
 ## Commands
 - `flutter run -d chrome` — 本地開發
 - `flutter build web --release` — 建置
