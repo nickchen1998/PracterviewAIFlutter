@@ -134,38 +134,35 @@ class HomeScreen extends ConsumerWidget {
                           ?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 16),
                   SizedBox(
-                    height: 120,
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: results.reversed.map((r) {
-                          return Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Text('${r.overallScore.round()}',
-                                  style: textTheme.labelSmall
-                                      ?.copyWith(color: colors.primary)),
-                              const SizedBox(height: 4),
-                              Container(
-                                width: 40,
-                                height: r.overallScore * 1.0,
-                                decoration: BoxDecoration(
-                                  color:
-                                      colors.primary.withValues(alpha: 0.7),
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(4)),
-                                ),
+                    height: 160,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: results.reversed.map((r) {
+                        final barHeight = (r.overallScore / 100) * 100;
+                        return Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text('${r.overallScore.round()}',
+                                style: textTheme.labelSmall
+                                    ?.copyWith(color: colors.primary, fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 4),
+                            Container(
+                              width: 40,
+                              height: barHeight,
+                              decoration: BoxDecoration(
+                                color: colors.primary.withValues(alpha: 0.7),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(4)),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                  '${r.date.month}/${r.date.day}',
-                                  style: textTheme.labelSmall?.copyWith(
-                                      color: colors.onSurfaceVariant)),
-                            ],
-                          );
-                        }).toList(),
-                      ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('${r.date.month}/${r.date.day}',
+                                style: textTheme.labelSmall?.copyWith(
+                                    color: colors.onSurfaceVariant)),
+                          ],
+                        );
+                      }).toList(),
                     ),
                   ),
                 ],
