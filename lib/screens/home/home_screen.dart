@@ -28,33 +28,59 @@ class HomeScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${S.welcomeBack}，${user.name}',
-                      style: textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${DateTime.now().year}/${DateTime.now().month}/${DateTime.now().day}',
-                      style: textTheme.bodyMedium
-                          ?.copyWith(color: colors.onSurfaceVariant),
-                    ),
-                  ],
+          // Welcome Banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.primary,
+                  colors.primary.withValues(alpha: 0.8),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${S.welcomeBack}，${user.name}',
+                        style: textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '準備好今天的面試練習了嗎？持續練習是成功的關鍵。',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton.icon(
+                        onPressed: () => context.go('/interview/setup'),
+                        icon: const Icon(Icons.play_arrow_rounded),
+                        label: const Text(S.startInterview),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: colors.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              FilledButton.icon(
-                onPressed: () => context.go('/interview/setup'),
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text(S.startInterview),
-              ),
-            ],
+                const SizedBox(width: 20),
+                Icon(Icons.record_voice_over,
+                    size: 64, color: Colors.white.withValues(alpha: 0.3)),
+              ],
+            ),
           ),
           const SizedBox(height: 24),
 

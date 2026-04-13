@@ -24,6 +24,8 @@ class AppScaffold extends StatelessWidget {
     if (isCompact(context)) {
       return Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
           title: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -39,12 +41,14 @@ class AppScaffold extends StatelessWidget {
             ],
           ),
         ),
-        drawer: _SidebarContent(
-          currentIndex: index,
-          onTap: (i) {
-            Navigator.pop(context); // close drawer
-            _onTap(context, i);
-          },
+        drawer: Drawer(
+          child: _SidebarContent(
+            currentIndex: index,
+            onTap: (i) {
+              Navigator.pop(context);
+              _onTap(context, i);
+            },
+          ),
         ),
         body: child,
       );
@@ -88,24 +92,17 @@ class _SidebarContent extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      width: 260,
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(
-          right: BorderSide(
-            color: colors.outlineVariant.withValues(alpha: 0.5),
-          ),
-        ),
-      ),
+      width: 250,
+      color: Colors.white,
       child: SafeArea(
         child: Column(
           children: [
             // Logo
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
               child: Row(
                 children: [
-                  Image.asset('images/logo.png', width: 36, height: 36),
+                  Image.asset('images/logo.png', width: 34, height: 34),
                   const SizedBox(width: 10),
                   Text(
                     S.appName,
@@ -117,8 +114,6 @@ class _SidebarContent extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-            Divider(color: colors.outlineVariant.withValues(alpha: 0.5), height: 1),
             const SizedBox(height: 8),
 
             // Nav items
@@ -147,17 +142,21 @@ class _SidebarContent extends StatelessWidget {
             const Spacer(),
 
             // User section
-            Divider(color: colors.outlineVariant.withValues(alpha: 0.5), height: 1),
-            Padding(
-              padding: const EdgeInsets.all(16),
+            Container(
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F5F7),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 18,
+                    radius: 16,
                     backgroundColor: colors.primaryContainer,
                     child: Text(
                       '王',
-                      style: textTheme.labelLarge
+                      style: textTheme.labelMedium
                           ?.copyWith(color: colors.onPrimaryContainer),
                     ),
                   ),
@@ -167,10 +166,10 @@ class _SidebarContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('王小明',
-                            style: textTheme.bodyMedium
+                            style: textTheme.bodySmall
                                 ?.copyWith(fontWeight: FontWeight.w600)),
                         Text('xiaoming@example.com',
-                            style: textTheme.bodySmall?.copyWith(
+                            style: textTheme.labelSmall?.copyWith(
                                 color: colors.onSurfaceVariant),
                             overflow: TextOverflow.ellipsis),
                       ],
@@ -178,9 +177,11 @@ class _SidebarContent extends StatelessWidget {
                   ),
                   IconButton(
                     icon: Icon(Icons.logout,
-                        size: 20, color: colors.onSurfaceVariant),
+                        size: 18, color: colors.onSurfaceVariant),
                     onPressed: () {},
                     tooltip: '登出',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
                 ],
               ),
@@ -215,9 +216,7 @@ class _NavItem extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       child: Material(
-        color: selected
-            ? colors.primaryContainer.withValues(alpha: 0.5)
-            : Colors.transparent,
+        color: selected ? colors.primary.withValues(alpha: 0.08) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
@@ -239,6 +238,17 @@ class _NavItem extends StatelessWidget {
                     fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
                   ),
                 ),
+                if (selected) ...[
+                  const Spacer(),
+                  Container(
+                    width: 4,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
