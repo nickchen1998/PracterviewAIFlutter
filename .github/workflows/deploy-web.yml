@@ -1,0 +1,34 @@
+name: Deploy Web to Zeabur
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+      - run: npx nuxt generate
+
+      - name: Deploy to Zeabur
+        uses: zeabur/action@main
+        with:
+          project_id: ${{ secrets.ZEABUR_PROJECT_ID }}
+          service_id: ${{ secrets.ZEABUR_WEB_SERVICE_ID }}
+          working_directory: web/.output/public
+        env:
+          ZEABUR_TOKEN: ${{ secrets.ZEABUR_TOKEN }}
