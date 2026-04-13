@@ -19,7 +19,7 @@ class ChatBubble extends StatelessWidget {
       alignment: isFromAI ? Alignment.centerLeft : Alignment.centerRight,
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width * 0.75,
+          maxWidth: (MediaQuery.sizeOf(context).width * 0.75).clamp(0, 600),
         ),
         child: Column(
           crossAxisAlignment:

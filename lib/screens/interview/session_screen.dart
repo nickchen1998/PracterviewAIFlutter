@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../models/interview.dart';
 import '../../providers/interview_provider.dart';
+import '../../utils/breakpoints.dart';
 import '../../utils/strings.dart';
 import '../../widgets/chat_bubble.dart';
 
@@ -31,6 +32,154 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
     final colors = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    Widget chatArea = Column(
+      children: [
+        // Progress bar
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              if (isCompact(context))
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${setup.position} - ${setup.industry}',
+                        style: textTheme.labelSmall
+                            ?.copyWith(color: colors.onSurfaceVariant)),
+                    Text('3 / 8 題',
+                        style: textTheme.labelSmall
+                            ?.copyWith(color: colors.onSurfaceVariant)),
+                  ],
+                ),
+              const SizedBox(height: 4),
+              LinearProgressIndicator(
+                value: 3 / 8,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ],
+          ),
+        ),
+
+        // Mode toggle (only on compact)
+        if (isCompact(context))
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ChoiceChip(
+                  label: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.chat_outlined, size: 16),
+                      SizedBox(width: 4),
+                      Text(S.textMode),
+                    ],
+                  ),
+                  selected: !_isVoiceMode,
+                  onSelected: (_) => setState(() => _isVoiceMode = false),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.mic_outlined, size: 16),
+                      SizedBox(width: 4),
+                      Text(S.voiceMode),
+                    ],
+                  ),
+                  selected: _isVoiceMode,
+                  onSelected: (_) => setState(() => _isVoiceMode = true),
+                ),
+              ],
+            ),
+          ),
+
+        // Messages / Voice area
+        Expanded(
+          child: _isVoiceMode
+              ? _buildVoiceArea(context)
+              : _buildChatArea(context, messages),
+        ),
+
+        // Input area
+        _isVoiceMode ? _buildVoiceInput(context) : _buildTextInput(context),
+      ],
+    );
+
+    // Side panel for desktop
+    Widget sidePanel = Card(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('面試資訊',
+                style:
+                    textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            _InfoItem(label: S.targetPosition, value: setup.position),
+            _InfoItem(label: S.targetIndustry, value: setup.industry),
+            _InfoItem(
+                label: S.interviewType, value: _typeLabel(setup.type)),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('進度', style: textTheme.bodySmall),
+                Text('3 / 8 題',
+                    style: textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: 3 / 8,
+              borderRadius: BorderRadius.circular(4),
+            ),
+            const SizedBox(height: 20),
+
+            // Mode toggle
+            Text(S.interviewMode,
+                style:
+                    textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: false,
+                  icon: Icon(Icons.chat_outlined, size: 16),
+                  label: Text(S.textMode),
+                ),
+                ButtonSegment(
+                  value: true,
+                  icon: Icon(Icons.mic_outlined, size: 16),
+                  label: Text(S.voiceMode),
+                ),
+              ],
+              selected: {_isVoiceMode},
+              onSelectionChanged: (s) =>
+                  setState(() => _isVoiceMode = s.first),
+            ),
+            const Spacer(),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => _showEndDialog(context),
+                icon: Icon(Icons.stop, color: colors.error),
+                label: Text(S.endInterview,
+                    style: TextStyle(color: colors.error)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: colors.error),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(S.interviewInProgress),
@@ -40,7 +189,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           onPressed: () => _showEndDialog(context),
         ),
         actions: [
-          // Timer
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             margin: const EdgeInsets.only(right: 8),
@@ -65,90 +213,36 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          // Progress bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${setup.position} - ${setup.industry}',
-                        style: textTheme.labelSmall
-                            ?.copyWith(color: colors.onSurfaceVariant)),
-                    Text('3 / 8 題',
-                        style: textTheme.labelSmall
-                            ?.copyWith(color: colors.onSurfaceVariant)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                LinearProgressIndicator(
-                  value: 3 / 8,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ],
-            ),
-          ),
-
-          // Mode toggle
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.chat_outlined, size: 16),
-                      const SizedBox(width: 4),
-                      const Text(S.textMode),
-                    ],
-                  ),
-                  selected: !_isVoiceMode,
-                  onSelected: (_) => setState(() => _isVoiceMode = false),
-                ),
-                const SizedBox(width: 8),
-                ChoiceChip(
-                  label: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.mic_outlined, size: 16),
-                      const SizedBox(width: 4),
-                      const Text(S.voiceMode),
-                    ],
-                  ),
-                  selected: _isVoiceMode,
-                  onSelected: (_) => setState(() => _isVoiceMode = true),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-
-          // Messages / Voice area
-          Expanded(
-            child: _isVoiceMode
-                ? _buildVoiceArea(context)
-                : _buildChatArea(context, messages),
-          ),
-
-          // Input area
-          _isVoiceMode
-              ? _buildVoiceInput(context)
-              : _buildTextInput(context),
-        ],
-      ),
+      body: isExpanded(context)
+          ? Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(flex: 3, child: chatArea),
+                  const SizedBox(width: 16),
+                  SizedBox(width: 300, child: sidePanel),
+                ],
+              ),
+            )
+          : chatArea,
     );
+  }
+
+  String _typeLabel(InterviewType type) {
+    switch (type) {
+      case InterviewType.technical:
+        return S.technicalInterview;
+      case InterviewType.behavioral:
+        return S.behavioralInterview;
+      case InterviewType.comprehensive:
+        return S.comprehensiveInterview;
+    }
   }
 
   Widget _buildChatArea(
       BuildContext context, List<InterviewMessage> messages) {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      reverse: false,
       itemCount: messages.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, i) {
@@ -170,7 +264,6 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Waveform placeholder
           Container(
             width: 200,
             height: 60,
@@ -183,10 +276,9 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: List.generate(
                       20,
-                      (i) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
+                      (i) => Container(
                         width: 4,
-                        height: _isRecording ? (10.0 + (i % 5) * 8) : 10,
+                        height: 10.0 + (i % 5) * 8,
                         decoration: BoxDecoration(
                           color: colors.primary,
                           borderRadius: BorderRadius.circular(2),
@@ -195,24 +287,18 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                     ),
                   )
                 : Center(
-                    child: Text(
-                      '語音波形',
-                      style: textTheme.bodySmall
-                          ?.copyWith(color: colors.onSurfaceVariant),
-                    ),
+                    child: Text('語音波形',
+                        style: textTheme.bodySmall
+                            ?.copyWith(color: colors.onSurfaceVariant)),
                   ),
           ),
           const SizedBox(height: 16),
-          if (_isRecording)
-            Text(S.recording,
-                style: textTheme.bodyMedium
-                    ?.copyWith(color: colors.error))
-          else
-            Text(S.tapToSpeak,
-                style: textTheme.bodyMedium
-                    ?.copyWith(color: colors.onSurfaceVariant)),
+          Text(
+            _isRecording ? S.recording : S.tapToSpeak,
+            style: textTheme.bodyMedium?.copyWith(
+                color: _isRecording ? colors.error : colors.onSurfaceVariant),
+          ),
           const SizedBox(height: 24),
-          // Last AI question
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 32),
             padding: const EdgeInsets.all(16),
@@ -223,8 +309,7 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.smart_toy_outlined,
-                    size: 20, color: colors.primary),
+                Icon(Icons.smart_toy_outlined, size: 20, color: colors.primary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -263,8 +348,8 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
                   ),
                   filled: true,
                   fillColor: colors.surfaceContainerHighest,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
                 maxLines: 3,
                 minLines: 1,
@@ -341,6 +426,33 @@ class _SessionScreenState extends ConsumerState<SessionScreen> {
             },
             child: const Text('結束'),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoItem extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _InfoItem({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(value,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(fontWeight: FontWeight.w500)),
         ],
       ),
     );
