@@ -5,7 +5,7 @@ AI 模擬面試練習平台
 ## 專案結構
 ```
 Practerview/
-├── web/         # Nuxt.js 前端（Web 版）
+├── web/         # Nuxt.js 前端（Web 版，server mode）
 ├── flutter/     # Flutter 前端（iOS/Android App）
 ├── backend/     # FastAPI 後端（共用 API）
 ```
@@ -21,10 +21,9 @@ Practerview/
 
 ## Zeabur
 - Project ID: 69dc9f28a159bbb5eeb48c39
-- Web (Nuxt) Service ID: 69dcbf2be4877f6f12f590ba (Git deploy, root: web/)
-- Flutter Service ID: 69dcb5cce4877f6f12f58e1d
+- Web (Nuxt) Service ID: 69dcc18931002b1c1e155912 (Git deploy, root: web/, server mode)
 - Environment ID: 69dc9f28474db8a99d6df6a8
-- 部署方式：Zeabur 直接綁定 GitHub repo，push 後自動建置（不需要 GitHub Actions）
+- 部署方式：Zeabur 直接綁定 GitHub repo，root directory: web/，push 後自動建置
 
 ## Rules
 - **推送前必須詢問使用者確認**，不要自動 git push。commit 可以先做，但 push 要等使用者同意。
@@ -33,8 +32,7 @@ Practerview/
 ## Commands
 ### Web (Nuxt.js)
 - `cd web && npm run dev` — 本地開發
-- `cd web && npm run build` — 建置
-- `cd web && npx nuxt generate` — 靜態產生
+- `cd web && npm run build` — 建置（server mode）
 
 ### Flutter
 - `cd flutter && flutter run -d chrome` — 本地開發

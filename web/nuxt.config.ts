@@ -23,5 +23,9 @@ export default defineNuxtConfig({
     '~/assets/css/main.css',
   ],
 
+  // Server mode — Zeabur runs the Node.js server directly
   ssr: true,
+  nitro: {
+    preset: 'node-server',
+  },
 })
