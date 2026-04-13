@@ -127,7 +127,7 @@ class _WebNavBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'assets/images/logo.png',
+                    'images/logo.png',
                     width: 32,
                     height: 32,
                   ),

@@ -61,7 +61,7 @@ class _BrandingPanel extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/images/logo.png', width: 80, height: 80),
+              Image.asset('images/logo.png', width: 80, height: 80),
               const SizedBox(height: 24),
               Text(
                 S.appName,

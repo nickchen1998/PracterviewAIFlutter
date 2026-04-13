@@ -56,7 +56,7 @@ class _BrandingPanel extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/images/logo.png',
+                'images/logo.png',
                 width: 80,
                 height: 80,
               ),
