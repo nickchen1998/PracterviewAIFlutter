@@ -1,11 +1,11 @@
 {
-    "name": "practerview",
-    "short_name": "practerview",
+    "name": "面試鏡 Practerview",
+    "short_name": "面試鏡",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#ffffff",
+    "theme_color": "#0D9488",
+    "description": "AI 模擬面試，讓你信心滿滿",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -56,14 +56,9 @@ class _BrandingPanel extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'icons/Icon-192.png',
+                'assets/images/logo.png',
                 width: 80,
                 height: 80,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.work_outline,
-                  size: 80,
-                  color: colors.onPrimary,
-                ),
               ),
               const SizedBox(height: 24),
               Text(

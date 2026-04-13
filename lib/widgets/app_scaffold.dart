@@ -127,14 +127,9 @@ class _WebNavBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset(
-                    'icons/Icon-192.png',
+                    'assets/images/logo.png',
                     width: 32,
                     height: 32,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.work_outline,
-                      size: 28,
-                      color: colors.primary,
-                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(
